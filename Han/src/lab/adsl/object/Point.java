@@ -29,6 +29,8 @@ public class Point {
 	
 	// ckenken
 	public int Gid;
+	public int same;
+	public String cate;
 
 	public Point() {
 		super();
@@ -71,6 +73,13 @@ public class Point {
 		this.ckTime = np.getTime();
 		this.lat = np.getLat();
 		this.lng = np.getLng();
+		this.cate = np.getCate();
+	}
+	
+	public void show()
+	{
+		System.out.println(id + ": " + lat + "," + lng  + " same=" + same + ", cate = " + cate);
+		
 	}
 	
 	@Override

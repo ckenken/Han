@@ -1,13 +1,16 @@
 package com.ckenken.algo;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
 import lab.adsl.object.Point;
 
+import com.ckenken.io.JDBC;
 import com.ckenken.storage.Coarse_pattern;
+import com.ckenken.storage.NewPoint;
 import com.ckenken.storage.Sequence;
 import com.ckenken.storage.Snippet;
 
@@ -37,7 +40,7 @@ public class Coarse {
 			}
 		}
 		
-		return null;
+		return temp;
 	}
 	
 	// test for coarse which length = 2, dt = 60, sigma = 3
@@ -53,13 +56,13 @@ public class Coarse {
 		for(int i = 0; i<objects_extended.size(); i++) {
 			Sequence o = objects_extended.get(i);
 			long start = (o.points.get(0).ckTime.getTime());
-			for(int j = 1; j<o.points.size(); i++) {
+			for(int j = 1; j<o.points.size(); j++) {
 			
 				if(o.points.get(j).Gid == g_index1) {
 					continue;
 				}
-				
-				if(Math.abs(o.points.get(j).ckTime.getTime() - start) <= 600000 && o.points.get(j).Gid == g_index2) { 
+				if(Math.abs(o.points.get(j).ckTime.getTime() - start) <= dt && o.points.get(j).Gid == g_index2) { 
+ 			//	if(o.points.get(j).Gid == g_index2) { 
 					counter++;
 					
 					int index = check_exist_snippet(new_coarse_pattern.snippet_sets, o.points.get(0), o.points.get(j));
@@ -108,7 +111,7 @@ public class Coarse {
 		int index = 0;
 		
 		for(int i = 0; i<sni_sets.size(); i++) {
-			for(int j = 0; j<sni_sets.size(); j++) {
+			for(int j = 0; j<sni_sets.get(i).s.points.size(); j++) {
 				if(sni_sets.get(i).s.points.get(j).equals(p1) && flag == false) {
 					counter++;
 				}
@@ -143,6 +146,25 @@ public class Coarse {
 		}
 		return flag;
 	}
+	
+	public static NewPoint getSameCenterById(int sameId) throws SQLException
+	{
+		JDBC jdbc = new JDBC();
+		
+		String sql = "select * from same where sameid=" + sameId;
+		
+		ResultSet rs = jdbc.query(sql);
+		
+		rs.next();
+		double lat = rs.getDouble("lat");
+		double lng = rs.getDouble("lng");
+		String cate = rs.getString("cate");
+		
+		NewPoint p = new NewPoint(new Date(), lat, lng, cate);
+		
+		return p;
+	}
+	
 	
 	public static void main(String [] args) throws ParseException 
 	{

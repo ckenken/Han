@@ -1,103 +1,103 @@
 package com.ckenken.Main;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import lab.adsl.object.Point;
-import lab.adsl.optics.OPTICS;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
-
-import com.ckenken.storage.KML;
+import com.ckenken.io.JDBC;
 import com.ckenken.storage.NewPoint;
+import com.ckenken.storage.Sequence;
 
 public class Main {
-	public static void main(String [] args) throws IOException
-	{
-		KML kml = new KML();
-		
-		File f = new File("history-10-13-2014.kml");
-		
-		FileInputStream FIS = new FileInputStream(f);
-		
-		@SuppressWarnings("resource")
-		InputStreamReader ISR = new InputStreamReader(FIS);
-		
-		StringBuilder SB = new StringBuilder();
-		
-		while(ISR.ready()) 
-		{
-			char a = (char)ISR.read();
-			SB.append(a);
-		}
-		
-		kml.raw = SB.toString();
-		
-		//System.out.print(SB.toString());
-		
-		Document doc = Jsoup.parse(SB.toString());
-		
-		Elements whens = doc.getElementsByTag("when");
-		Elements coords = doc.getElementsByTag("gx:coord");
-		System.out.println(whens.get(0).text());
-		//System.out.println(coords.get(0).text());
-		
-		Map<Long, Point> result = new HashMap<Long, Point>();
-		
-		for(int i = 0; i<1000; i++) { //whens.size();
-			
-			String [] SP = coords.get(i).text().split(" ");
-			
-			String lat = SP[0];
-			String lng = SP[1];
-			
-			NewPoint newtemp = new NewPoint(whens.get(i).text(), lat, lng);
-			//System.out.println(newtemp.getLat());
-			Point temp = new Point((long)i, newtemp);
-			
-			kml.points.add(temp);
-			result.put((long)i, temp);
-		}
-		
-		System.out.println(whens.size());
-		
-		//System.out.println(result.get((long)0).lat);
-		
-		for(int i = 0; i<10; i++) {
-			System.out.println(result.get((long)i).lat + ", " + result.get((long)i).lng);
-			
-		}
-		
-//		Map<Long, Point> result = new HashMap<Long, Point>();
-//		Point p0 = new Point(0, 53.7456517542, -0.4875719547);
-//		result.put(0L, p0);
-//		
-		OPTICS k = new OPTICS();
-		
-		k.setParameter(0, 20, 3);
-			
-		k.pts = result;
-		
-	//	k.pts = k.getSyntheticData();
+	public static SimpleDateFormat sdFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 	
-		k.runOptics();
+	public static void main(String [] args) throws SQLException, ParseException
+	{
+		Sequence all = new Sequence();
 		
-		k.extractCluster();
+		JDBC jdbc = new JDBC();
 		
-		k.displayCluster();
-		System.out.println(k.clusterOrder.get(0).ckTime);
+		String sql = "select * from raw2 where same != -1";
 		
-		for(int i = 0;i<k.clusterOrder.size(); i++) {
-			kml.points.get((int)k.clusterOrder.get(i).id).clusterId = k.clusterOrder.get(i).clusterId;
-		}		
+		ResultSet rs = jdbc.query(sql);
+		
+		rs.next();
+		double lat = rs.getDouble("lat");
+		double lng = rs.getDouble("lng");
+		String time = rs.getString("date");
+		
+		Date d = parseDate(time);
+		NewPoint np = new NewPoint(d, lat, lng);
+		Point startPoint = new Point(0, np);
+		startPoint.same = Integer.parseInt(rs.getString("same"));
+		
+		double latSum = lat;
+		double lngSum = lng;
+		int counter = 1;
+		
+		int idCounter = 0;
+		
+		System.out.println(sdFormat.format(startPoint.ckTime));
+		
+		while(rs.next()) {
+			lat = Double.parseDouble(rs.getString("lat"));
+			lng = Double.parseDouble(rs.getString("lng"));
+			time = rs.getString("date");
+			d = parseDate(time);
+			np = new NewPoint(d, lat, lng);
+			Point p = new Point(0, np);
+			p.same = Integer.parseInt(rs.getString("same"));		
+			
+			if(latSum == 0.0)
+			{
+				latSum += lat;
+				lngSum += lng; 
+			}
+			
+			if(p.same != startPoint.same) { // 不同 same 的交界點，要抓取該點(e.g. p1)的中心點，time = startPoint.time，並放入 Sequence
+				double centerLat = latSum/(double)counter;
+				double centerLng = lngSum/(double)counter;
+				Date t = startPoint.ckTime;
+				Point temp = new Point(idCounter, new NewPoint(t, centerLat, centerLng));
+				temp.same = startPoint.same;
+				all.points.add(temp);
+				latSum = lat;
+				lngSum = lng;
+				idCounter++;
+				counter = 1;
+				startPoint = p;
+			}
+			else // 不是交界點 
+			{
+				latSum += lat;
+				lngSum += lng;
+				counter++;
+			}
+		}
+		
+		
+		for(int i = 0; i<all.points.size(); i++) {
+			Point p = all.points.get(i);
+			System.out.println(p.id + ": " + p.lat + "," + p.lng + " " + sdFormat.format(p.ckTime));
+			
+		}
 		
 	}
+	
+	
+	
+	
+	public static Date parseDate(String time) throws ParseException
+	{
+		sdFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		
+		Date d = sdFormat.parse(time);
+		
+		return d;
+	}
+	
 }

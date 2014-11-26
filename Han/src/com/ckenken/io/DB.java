@@ -172,5 +172,4 @@ public class DB {
 		int OK = jdbc.insertQuery(sql);
 		
 	}
-	
 }

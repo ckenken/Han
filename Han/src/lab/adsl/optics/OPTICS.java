@@ -46,6 +46,7 @@ package lab.adsl.optics;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -53,7 +54,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -63,6 +63,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
+
 
 
 
@@ -210,7 +211,7 @@ public class OPTICS extends Thread {
 		}else{
 			// all neighbors
 			ir = this.pts.keySet().iterator();
-			System.out.println("RNN pts size:" + this.pts.keySet().size());
+			//System.out.println("RNN pts size:" + this.pts.keySet().size());  ///////////
 		}
 		long start = Calendar.getInstance().getTimeInMillis();
 		while (ir.hasNext()) {
@@ -240,7 +241,7 @@ public class OPTICS extends Thread {
 			}
 		}
 		long end = Calendar.getInstance().getTimeInMillis();
-		System.out.println("(" + this.settingId + "," + this.checkinParamId + ")" + "dist, runtime:" + (end - start) );
+		//System.out.println("(" + this.settingId + "," + this.checkinParamId + ")" + "dist, runtime:" + (end - start) );  ///////
 
 		// step2 return the elements which distance is smaller than the eps.
 		List<PointDistance> neighborList = new ArrayList<PointDistance>();
@@ -627,13 +628,20 @@ public class OPTICS extends Thread {
 
 	/**
 	 * display in console
+	 * @throws IOException 
 	 */
-	public void displayCluster() {
+	public void displayCluster() throws IOException {
+		File f = new File("sameG.txt");
+		FileWriter FW = new FileWriter(f);
+		
 		for (int i = 0; i < this.clusterOrder.size(); i++) {
 			Point o = this.clusterOrder.get(i);
 			System.out.println("output:" + o.id + "," + o.clusterId + ","
 					+ o.coreDist + "," + o.reachabilityDist);
+			FW.append("output:" + o.id + "," + o.clusterId + ","
+					+ o.coreDist + "," + o.reachabilityDist + "\n");
 		}
+		FW.close();
 	}
 
 	/**

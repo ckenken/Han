@@ -15,7 +15,22 @@ public class Sequence {
 	
 	public Sequence(ArrayList<Point> input) 
 	{
-		points = input;
+		points = new ArrayList<Point>();
+		
+		for(int i = 0; i<input.size(); i++) {
+			points.add(input.get(i));
+		}
+	}
+	
+	public void show()
+	{
+		for(int i = 0;i<points.size(); i++) {
+			if(i != 0)
+				System.out.print(points.get(i).id + "->");
+			else 
+				System.out.print(points.get(i).id);
+		}
+		System.out.println();
 	}
 	
 	public ArrayList<Point> getSubSequence(int index) 

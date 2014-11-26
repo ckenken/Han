@@ -6,6 +6,7 @@ public class NewPoint {
 	private Date time;
 	private double lat;
 	private double lng;
+	private String cate;
 	
 	@SuppressWarnings("deprecation")
 	public NewPoint(String inputTime, String inputLat, String inputLng)
@@ -36,6 +37,21 @@ public class NewPoint {
 		lng = Double.parseDouble(inputLng);
 	}
 	
+	public NewPoint(Date d, double inputLat, double inputLng)
+	{
+		time = d;
+		lat = inputLat;
+		lng = inputLng;
+	}
+	
+	public NewPoint(Date d, double inputLat, double inputLng, String inputCate)
+	{
+		time = d;
+		lat = inputLat;
+		lng = inputLng;
+		cate = inputCate;
+	}
+	
 	public Date getTime()
 	{
 		return time;
@@ -48,5 +64,13 @@ public class NewPoint {
 	{
 		return lng;
 	}
+	public String getCate()
+	{
+		return cate;
+	}
 	
+	public void setTime(Date d)
+	{
+		time = d;
+	}
 }

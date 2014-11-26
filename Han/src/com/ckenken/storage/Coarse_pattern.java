@@ -14,4 +14,13 @@ public class Coarse_pattern {
 		G_sequence_ids = new ArrayList<Integer>();
 	}
 	
+	public void show()
+	{
+		
+		System.out.println(G_sequence_ids.get(0) + "->" + G_sequence_ids.get(1) + " ");
+		
+//		for(int i =0; i<snippet_sets.size(); i++) {
+//			snippet_sets.get(i).s.show();
+//		}
+	}
 }
