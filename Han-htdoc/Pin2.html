@@ -1,0 +1,138 @@
+<html>
+<head>
+	<title> Test Page </title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script type="text/javascript" src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0">
+	</script>
+</head>
+<body>
+
+<input type="button" value="gogogo" onclick="drawMap()"></input>
+<div id = "myMap" style="position:relative; width: 1600px; height:800px;"></div>
+
+
+<script>
+
+         function displayInfobox(e)
+         {
+            pinInfobox.setOptions({ visible:true });
+         }                    
+
+         function hideInfobox(e)
+         {
+            pinInfobox.setOptions({ visible: false });
+         }
+
+	var drawMap = function()
+	{
+	    // Initialize the map
+	    map = new Microsoft.Maps.Map(document.getElementById("myMap"), {credentials:"Amhm2BYzMgFLLTSjONULfGZYhdisMoJAi8bLF95U4r5_3S2Cca1UPbvSbmGIuOBc"}); 
+	    // Add a pin to the center of the map
+	    //var pin = new Microsoft.Maps.Pushpin(center, {text: '1'}); 
+
+	    //Microsoft.Maps.Events.addHandler(pin, 'click', kkman);
+
+	    var url = "same_out.txt";
+
+	    var center = new Microsoft.Maps.Location(-27.496648788434776, 153.00421527979546);
+
+	    $.get(url, function(data) {
+	    	var lines = data.split('\n');
+
+	    	for(var i = 0; i<lines.length; i++) {
+	    		console.log(lines[i] + '\n');
+	    		var SP = lines[i].split(',');
+
+	    		var latitude = parseFloat(SP[0]);
+				var longitude = parseFloat(SP[1]);
+
+				var loc = new Microsoft.Maps.Location(latitude, longitude);
+		    	center = new Microsoft.Maps.Location(latitude, longitude);
+
+		    	var pinInfobox = null;   
+
+		    	var pinText = "";
+
+
+		    	pinText = i.toString();
+
+
+		    	// switch(i) {
+		    	// 	case 0:
+		    	// 		pinText = '0';
+		    	// 		break;
+		    	// 	default:
+		    	// 		pinText = "2";
+		    	// 		break;
+		    	// }
+
+		      
+
+		        var pin = new Microsoft.Maps.Pushpin(loc, {text: pinText}); 
+
+//	   Microsoft.Maps.Events.addHandler(map, 'viewchange', hideInfobox);
+      			  //Microsoft.Maps.Events.addHandler(pin, 'click', displayInfobox);
+      	//		if(i == 0 || i == 8 || i == 4 || i == 3)
+		        	map.entities.push(pin);	
+	//	        map.entities.push(pinInfobox);
+
+		
+
+	    	}
+	    })
+
+	    map.setView({center: center, zoom: 12});
+
+/*
+		for(i = 0; i<obj.models[index].length; i++) {
+			var latitude = obj.models[index][i].latitude;
+			var longitude = obj.models[index][i].longitude;
+
+			var loc = new Microsoft.Maps.Location(latitude, longitude);
+	    	center = new Microsoft.Maps.Location(latitude, longitude);
+
+	        var pin = new Microsoft.Maps.Pushpin(loc); 
+	        map.entities.push(pin);	
+		}          
+
+
+
+			var url = "fetch_location/getCates.php?location_id=" + location_id; 
+			$.get(url, function(data) {
+				if( data === "" || !data ){
+					//alert(location_id);
+					if( location_index+1 < obj.models[index].length ){
+						getCates(location_index+1, obj.models[index][location_index+1].location_id.toString());
+					}
+				}
+				else{
+					document.getElementById("label"+index).innerHTML = data.substring(0,20);
+				}
+			})
+			
+	    // Center the map on the location
+	    map.setView({center: center, zoom: 10});
+
+/*
+	// Add handler for the pushpin click event.
+    Microsoft.Maps.Events.addHandler(pin, 'click', displayInfobox);
+
+    // Hide the infobox when the map is moved.
+    Microsoft.Maps.Events.addHandler(map, 'viewchange', hideInfobox);
+
+
+    Microsoft.Maps.Events.addHandler(pin, 'click', kkman);
+
+    // Add the pushpin and infobox to the map
+    map.entities.push(pin);
+    map.entities.push(pinInfobox);
+*/
+
+	}
+
+
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<html>
+<head>
+<meta http-equiv="Content-type"  content="text/html; charset=utf-8" />
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript" src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0"></script>
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+<script type="text/javascript" src="markerwithlabel.js"></script>
+
+<title> 顯示頁面</title>
+<body onload="setGcenter()">
+<script>
+function httpGet(theUrl)
+{
+    var xmlHttp = null;
+
+    xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false );
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+}
+
+
+var setGcenter = function()
+{
+	for(var i = 0; i<=75; i++) {
+		httpGet('setgcenter.php?gid=' + i);
+		console.log(i);
+	} 
+}
+
+</script>
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,437 @@
+<html>
+<head>
+<meta http-equiv="Content-type"  content="text/html; charset=utf-8" />
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript" src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0"></script>
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+<script type="text/javascript" src="markerwithlabel.js"></script>
+<script type="text/javascript" src="infobox.js"></script>
+
+<title> 顯示頁面</title>
+<style>
+#header { background: #0080FF;}
+
+#myMap {
+	float: left;
+	position: relative;
+	width: 60%;
+	height: 90%;
+	background: #AABBFF;
+}
+#select {
+	margin-left:38%;
+	margin-right: 0%;
+	height:90%;
+	background: #FFFF00;
+}
+#footer {
+	clear:both;
+	background: #EEE0E5;
+}
+
+</style>
+ <style type="text/css">
+   .labels {
+     color: white;
+     background-color: red;
+     font-family: "Lucida Grande", "Arial", sans-serif;
+     font-size: 10px;
+     text-align: center;
+     white-space: nowrap;
+   }
+ </style>
+
+</head>
+<body onload="drawMap()">
+
+<script> 
+
+var infoOptions = {
+	 content: "12345"
+	,boxStyle: {
+	   border: "1px solid black"
+	  ,textAlign: "center"
+	  ,fontSize: "8pt"
+	  ,width: "50px"
+	  ,background: "#BFEFFF"
+	 }
+	,disableAutoPan: true
+	,pixelOffset: new google.maps.Size(-25, 0)
+	,position: new google.maps.LatLng(-27.496648788434776, 153.00421527979546)
+	,closeBoxURL: ""
+	,isHidden: false
+	,pane: "mapPane"
+	,enableEventPropagation: true
+};
+
+
+var mapOptions = {
+	zoom: 13,
+	center: new google.maps.LatLng(-27.496648788434776, 153.00421527979546),
+	mapTypeId: google.maps.MapTypeId.TERRAIN
+	};
+
+	var lineSymbol = {
+	path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
+};
+
+var colors = ["#FF0000", "#00FF00", "#0000FF", "#FFBBBB", "#000000"];
+
+var map;
+
+function httpGet(theUrl)
+{
+    var xmlHttp = null;
+
+    xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false );
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+}
+
+var clearing = function()
+{
+	var div = document.getElementById("mySelect");
+	while(div.firstChild){
+	    div.removeChild(div.firstChild);
+	}
+}
+
+var drawMap = function()
+{
+  	var lineCoordinates = [];
+
+  	var mySelect = document.getElementById("mySelect");
+
+	var x = document.getElementById("mySelect").selectedIndex;
+	var url = mySelect.getElementsByTagName("option")[x].value;
+	var raws = httpGet(url);
+	var points = raws.split("\n");
+
+	if(x > 3) {
+  		map = new google.maps.Map(document.getElementById('myMap'), mapOptions);  // google map
+  	}
+  	else {
+
+	  	bingMap = new Microsoft.Maps.Map(document.getElementById("myMap"), {credentials:"Amhm2BYzMgFLLTSjONULfGZYhdisMoJAi8bLF95U4r5_3S2Cca1UPbvSbmGIuOBc"});  // Bing map
+	  	var center = new Microsoft.Maps.Location(-27.496648788434776, 153.00421527979546);
+  	}
+
+	switch(x) {
+		case 0: // raw 
+			break;
+		case 1: // raw without noise
+		case 2: // same
+		case 3: // group (gcenter)
+			for(var i = 0; i<points.length-1; i++) {
+				var SP = points[i].split(",");
+				// 0 = id, 1 = lat, 2 = lng, 3 = same, 4 = G, 5 = Time, 6 = cate;
+
+				var lat = parseFloat(SP[1]);
+				var lng = parseFloat(SP[2]);
+
+				var loc = new Microsoft.Maps.Location(lat, lng);
+
+				var pinText = "";
+
+				if(x>=2)
+			    	pinText = i.toString();
+
+				var pin = new Microsoft.Maps.Pushpin(loc, {text: pinText}); 
+				bingMap.entities.push(pin);	
+			}			
+			bingMap.setView({center: center, zoom: 12});
+			break;
+		case 4:
+		case 5:
+		case 6:
+			for(var i = 0; i<points.length-1; i++) {
+				var SP = points[i].split(",");
+				// 0 = sameid, 1 = lat, 2 = lng, 3 = cate, 4 = startTime, 5 = endTime;
+
+				var lat = parseFloat(SP[1]);
+				var lng = parseFloat(SP[2]);
+				console.log(lat + "," + lng);
+				lineCoordinates.push(new google.maps.LatLng(lat, lng));
+
+				var marker = new MarkerWithLabel({
+					position: new google.maps.LatLng(lat, lng),
+					map: map,
+					draggable: true,
+					raiseOnDrag: true,
+					labelText: "",
+					labelAnchor: new google.maps.Point(3, 30),
+					labelClass: "labels", // the CSS class for the label
+					labelInBackground: false
+				});		
+			}		
+
+			var line = new google.maps.Polyline({
+		    	path: lineCoordinates,
+		    	icons: [{
+		      	icon: lineSymbol,
+		      	offset: '100%'
+		    }],
+	    		strokeColor: "#FF0000",
+	    			map: map
+	  			});
+
+
+			break;
+		default:
+			break;
+	}	
+}
+
+</script>
+
+<script>
+
+var generateOption = function()
+{
+	var div = document.getElementById("patternSelect");
+	while(div.firstChild){
+	    div.removeChild(div.firstChild);
+	}
+
+	var patternSelect = document.getElementById("patternSelect");
+
+//	var url = document.getElementById("coarseSelect").value + "?length=" + document.getElementById("lengthSelect").value;
+	var url = "fetch_coarse.php" + "?length=" + document.getElementById("lengthSelect").value;
+
+	//console.log(url);	
+
+	var raw = httpGet(url);
+	var patterns = raw.split("\n");
+
+	for(var i = 0; i<patterns.length-1; i++) {
+		var SP = patterns[i].split(" ");
+		// 0 = cid, 1 = pattern, 2 = weightsum, 3 = length
+
+		var text = SP[0] + ": " + SP[1];
+		var val = SP[0];
+
+		var options = document.createElement("option");
+		options.value = val;
+		options.text = text;
+
+		patternSelect.appendChild(options);
+	}
+
+}
+
+</script>
+
+
+<script>
+
+var ibLabels = [];
+var ibCounter = 0;
+
+var drawPattern = function() 
+{
+	ibLabels = [];
+	ibCounter = 0;
+
+	map = new google.maps.Map(document.getElementById('myMap'), mapOptions);  // google map
+	var lineCoordinates = [];
+
+	var coarseURL = document.getElementById("coarseSelect").value;
+
+	if(coarseURL == "fetch_coarse.php") {
+
+		var patternSelect = document.getElementById("patternSelect");
+		var x = document.getElementById("patternSelect").selectedIndex;
+		var info = patternSelect.getElementsByTagName("option")[x].text;
+
+		console.log(info);
+
+		var SP = info.split(": ");
+
+		var SP2 = SP[1].split(",");
+
+		for(var i = 0; i<SP2.length; i++) {
+			var rs = httpGet("fetch_gcenter.php?gid=" + SP2[i]);
+			// 0 = gid, 1 = lat, 2 = lng, 3 = cate, 4 = passbysum 
+			var SP3 = rs.split("#");
+			var lat = SP3[1];
+			var lng = SP3[2];
+			var passbySum = parseInt(SP3[4]);
+
+			console.log(SP3[4] + " " + passbySum);
+
+			lineCoordinates.push(new google.maps.LatLng(lat, lng));
+
+			var marker = new MarkerWithLabel({
+				position: new google.maps.LatLng(lat, lng),
+				map: map,
+				draggable: true,
+				raiseOnDrag: true,
+				labelText: SP3[0],
+				labelAnchor: new google.maps.Point(3, 30),
+				labelClass: "labels", // the CSS class for the label
+				labelInBackground: true,
+				html: "12345"
+			});						
+
+			ibLabels[ibCounter] = new InfoBox(infoOptions);
+			ibLabels[ibCounter].setPosition(new google.maps.LatLng(lat, lng));
+			
+			if(passbySum <= 0) 
+				ibLabels[ibCounter].setContent(SP3[3]);
+			else 
+				ibLabels[ibCounter].setContent("Pass by");
+
+			ibLabels[ibCounter].open(map);
+			ibCounter++;
+
+			google.maps.event.addListener(marker, 'click', function() {
+			    console.log(this);
+			    map.setZoom(15);
+				map.setCenter(this.getPosition());
+			});
+
+		}
+
+		var line = new google.maps.Polyline({
+	    	path: lineCoordinates,
+	    	icons: [{
+	      		icon: lineSymbol,
+	      		offset: '100%'
+	    	}],
+			strokeColor: "#FF0000",
+			map: map
+		});
+	}
+	else {
+
+		var patternSelect = document.getElementById("patternSelect");
+		var x = document.getElementById("patternSelect").selectedIndex;
+		var cid = patternSelect.getElementsByTagName("option")[x].value;
+
+		var url = coarseURL + "?cid=" + cid;
+
+		console.log(url);
+
+		var raw = httpGet(url);
+
+//		console.log(raw);
+
+		var lines = raw.split("\n");
+
+//		console.log(lines);
+
+		var fineLine = [];
+
+		for(var i = 0; i<lines.length-1; i++) {
+			var SP = lines[i].split(",");
+			console.log(SP);
+
+			for(var j = 0; j<SP.length; j+=2) {
+				var lat = parseFloat(SP[j]);
+				var lng = parseFloat(SP[j+1]);
+
+				lineCoordinates.push(new google.maps.LatLng(lat, lng));
+
+				var marker = new MarkerWithLabel({
+					position: new google.maps.LatLng(lat, lng),
+					map: map,
+					draggable: true,
+					raiseOnDrag: true,
+					labelText: "",
+					labelAnchor: new google.maps.Point(3, 30),
+					labelClass: "labels", // the CSS class for the label
+					labelInBackground: true
+				});							
+			}
+			fineLine[i] = new google.maps.Polyline({
+		    	path: lineCoordinates,
+		    	icons: [{
+		      		icon: lineSymbol,
+		      		offset: '100%'
+		    	}],
+				strokeColor: colors[i],
+				fillColor: colors[i],
+				map: map
+			});
+			//console.log(colors[i]);
+
+			lineCoordinates = [];
+
+		//	fineLine[i].setMap(map);
+		}
+	} 
+}
+
+var showInfo = function()
+{
+	if(ibCounter > 0) {
+		for(var i = 0; i<ibCounter; i++) {
+			ibLabels[i].show();
+		}
+	}
+}
+
+var hideInfo = function()
+{
+	if(ibCounter > 0) {
+		for(var i = 0; i<ibCounter; i++) {
+			ibLabels[i].hide();
+		}
+	}
+}
+
+</script>
+
+<div id="header">
+	<center><h1>Fine-grained Trajectory Data Showing!</h1></center>
+</div> 
+<div id="myMap">
+</div>
+
+<div id="select">
+	<h3>Input data Showing:</h3>
+	<select id="mySelect">
+  		<option value="fetch_raw.php?noise=yes">Raw Data</option>
+  		<option value="fetch_raw.php?noise=no">Raw Data without noise</option>
+  		<option value="fetch_same.php">Distinct points</option>
+  		<option value="fetch_gcenter.php">Category groups</option>
+  		<option value="fetch_sequence30.php">Sequence30</option>
+	</select>
+	<input type="button" value="refresh" onclick="drawMap()"></input>
+<!--	<input type="button" value="clear" onclick="clearing()"></input> 
+-->
+	<h3> Coarse pattern or Fine-grained Pattern:</h3>
+
+	<select id="coarseSelect">
+		<option value="fetch_coarse.php">Coarse Pattern</option>
+		<option value="fetch_fine.php">Fine-grained Pattern</option>
+	</select><br>
+	<h3> Length:</h3>
+	<select id="lengthSelect">
+		<option value="2">2</option>
+		<option value="3">3</option>
+		<option value="4">4</option>
+		<option value="5">5</option>
+		<option value="6">6</option>
+		<option value="7">7</option>
+		<option value="8">8</option>
+		<option value="9">9</option>
+	</select>	
+
+	<input type="button" value="generate option" onclick="generateOption()"></input>
+
+	<h3> Pattern:</h3>
+	<select id="patternSelect">
+	</select>	
+	<input type="button" value="Draw Pattern" onclick="drawPattern()"></input>
+	<input type="button" value="show category" onclick="showInfo()"></input>
+	<input type="button" value="hide category" onclick="hideInfo()"></input>
+
+</div>
+<div id="footer">
+	<center><h3>CopyRight © ckenken&#8482; 2014 All rights reserved. </h3></center>
+</div>
+</body>
+</html>
